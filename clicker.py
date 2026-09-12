@@ -1,46 +1,68 @@
-import time, pyautogui, threading, keyboard
+import time
+import threading
+import keyboard
+import pyautogui
+
+from config import Config
+
 
 clicking = False
-hotkey = None
-cooldown = 0.5
+running = False
 
-def get_inputs():
-    global hotkey, cooldown
-
-    print("Digite a hotkey:")
-    hotkey = keyboard.read_key()
-    print(f"Hotkey é {hotkey}")
-
-    while True:
-        try:
-            cooldown = float(input("Digite o intervalo de tempo: "))
-        except ValueError:
-            print("Digite um número!")
-            continue
-        break
-
-    return hotkey, cooldown
-    
 
 def on_hotkey():
     global clicking
+
     clicking = not clicking
+    print(f"Clicking: {clicking}")
+
+
+def set_hotkey():
+    global clicking
+
+    clicking = False
+
+    print("Pressione a nova hotkey...")
+    new_hotkey = keyboard.read_key()
+
+    keyboard.remove_all_hotkeys()
+
+    Config.hotkey = new_hotkey
+
+    keyboard.add_hotkey(Config.hotkey, on_hotkey)
+
+    print(f"Nova hotkey: {Config.hotkey}")
+
 
 def click_loop():
-    while True:
+    global running
+
+    while running:
         if clicking:
             pyautogui.click()
-            time.sleep(cooldown)
+            time.sleep(Config.interval)
+        else:
+            time.sleep(0.01)
 
-def auto_clicker():
-
-    keyboard.add_hotkey(hotkey, on_hotkey)
-
-    thread = threading.Thread(target=click_loop)
-    thread.start()
-
-    keyboard.wait()
 
 def start():
-    get_inputs()
-    auto_clicker()
+    global running
+
+    if running:
+        return
+
+    running = True
+
+    keyboard.add_hotkey(Config.hotkey, on_hotkey)
+
+    thread = threading.Thread(target=click_loop, daemon=True)
+    thread.start()
+
+
+def stop():
+    global running, clicking
+
+    running = False
+    clicking = False
+
+    keyboard.remove_all_hotkeys()
