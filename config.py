@@ -1,7 +1,8 @@
 class Config:
-    # Default
+    # Application
     THEME = "dark"
     VERSION = "v0.0.01"
+    GITHUB = "https://github.com/Raimundothedev/AutoClicker"
 
     # User settings
     hotkey = "f6"

@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import messagebox
 from config import *
 import clicker
+import webbrowser
 
 ctk.set_appearance_mode(Config.THEME)
 
@@ -11,7 +12,7 @@ class App(ctk.CTk):
         super().__init__()
         self.title(f"Auto Clicker | {Config.VERSION}")
         self.geometry(f"{Config.WIDTH}x{Config.HEIGHT}")
-        self.resizable(True, True)
+        self.resizable(False, False)
 
         self.create_widgets()
 
@@ -47,6 +48,16 @@ class App(ctk.CTk):
             font=ctk.CTkFont(size=26, weight="bold", family="Segoe UI")
         )
         title.pack(side="left", padx=50)
+
+        github = ctk.CTkButton(
+            self.header_frame,
+            text=f"{Config.GITHUB}",
+            fg_color="transparent",
+            hover=False,
+            text_color=("blue", "lightblue"),
+            command=lambda: webbrowser.open("https://github.com/Raimundothedev/FileOrganizer")
+        )
+        github.pack(side="right", pady=(20, 0))
 
 
     #=======================
