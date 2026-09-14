@@ -9,6 +9,9 @@ from config import Config
 clicking = False
 running = False
 
+type = "single"
+button = "left"
+
 
 def on_hotkey():
     global clicking
@@ -39,10 +42,30 @@ def click_loop():
 
     while running:
         if clicking:
-            pyautogui.click()
-            time.sleep(Config.interval)
+            if type == "single":
+                pyautogui.click(button=button)
+                time.sleep(Config.interval)
+            elif type == "double":
+                for _ in range(2):
+                    pyautogui.click(button=button)
+                time.sleep(Config.interval)
         else:
             time.sleep(0.01)
+
+def stop_loop():
+    global clicking
+    if not clicking:
+        return
+    clicking = False
+    print(clicking)
+
+def start_loop():
+    global clicking
+    if clicking:
+        return
+    clicking = True
+    print(clicking)
+
 
 
 def start():

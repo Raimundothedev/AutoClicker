@@ -1,4 +1,6 @@
 import customtkinter as ctk
+import tkinter as tk
+from tkinter import messagebox
 from config import *
 import clicker
 
@@ -232,7 +234,8 @@ class App(ctk.CTk):
             font=ctk.CTkFont(
                 family="Segoe UI",
                 size=14
-            )
+            ),
+            command=self.get_button_type
         )
         self.mouse_option.pack(side="left", padx=10)
         self.mouse_option.set("Left")
@@ -249,7 +252,8 @@ class App(ctk.CTk):
             values=[
                 "Single",
                 "Double"
-            ]
+            ],
+            command=self.get_click_type
         )
         self.click_type.pack(side="left", padx=10)
         self.click_type.set("Single")
@@ -270,16 +274,26 @@ class App(ctk.CTk):
         )
         self.toggle_frame.pack_propagate(False)
 
-        # Toggle button
-        
-        self.toggle_button = ctk.CTkButton(
+        # Start button
+        self.start_button = ctk.CTkButton(
             self.toggle_frame,
             height=50,
             width=150,
             text=f"Start ({Config.hotkey})",
             command= self.start_clicker
         )
-        self.toggle_button.pack(padx=10, pady=(20, 0), fill="x")
+        self.start_button.pack(padx=10, pady=(20, 0), fill="x")
+
+
+        # Stop button
+        self.stop_button = ctk.CTkButton(
+            self.toggle_frame,
+            height=50,
+            width=150,
+            text=f"Stop",
+            command= self.stop_clicker
+        )
+        self.stop_button.pack(padx=10, pady=(20, 0), fill="x")
 
         self.hotkey_button = ctk.CTkButton(
             self.toggle_frame,
@@ -305,56 +319,71 @@ class App(ctk.CTk):
             self.seconds.set("0")
 
         if self.milliseconds.get() == "":
-            self.milliseconds.set("0")
+            self.milliseconds.set("100")
 
-        hour = int(self.hours.get())
-        minutes = int(self.minutes.get())
-        seconds = int(self.seconds.get())
-        milliseconds = int(self.milliseconds.get())
+        try:
+            hour = int(self.hours.get())
+            minutes = int(self.minutes.get())
+            seconds = int(self.seconds.get())
+            milliseconds = int(self.milliseconds.get())
 
-        Config.interval = (
-            hour * 3600
+        except ValueError:
+            return
+
+        if hour < 0:
+            self.hours.set("0")
+            hour = 0
+
+        if minutes < 0:
+            self.minutes.set("0")
+            minutes = 0
+
+        if seconds < 0:
+            self.seconds.set("0")
+            seconds = 0
+
+        if milliseconds < 0:
+            self.milliseconds.set("100")
+            milliseconds = 100
+
+        total = (
+            hour * 60 * 60
             + minutes * 60
             + seconds
             + milliseconds / 1000
         )
 
-    def get_interval(self):
-        try:
-            hour = int(self.hours_entry.get() or 0)
-            minutes = int(self.minutes_entry.get() or 0)
-            seconds = int(self.seconds_entry.get() or 0)
-            milliseconds = int(self.milliseconds_entry.get() or 0)
-        except ValueError:
-            return
-        if hour < 0 or minutes < 0 or seconds < 0 or milliseconds < 0:
-            return
-
-        total = hour * 3600
-        total += minutes * 60
-        total += seconds
-        total += milliseconds / 1000
+        if total <= 0:
+            milliseconds = 100
+            self.milliseconds.set("100")
+            total = 0.1
 
         Config.interval = total
-        print(Config.interval)
+        print(f"Interval: {Config.interval}s")
+
+    def get_click_type(self, click_type):
+        clicker.type = click_type.lower()
+
+    def get_button_type(self, button_type):
+        clicker.button = button_type.lower()
+    
 
     def get_hotkey(self):
         clicker.set_hotkey()
 
     def start_clicker(self):
-        self.get_interval()
-
         if not Config.hotkey:
             return
+        clicker.start_loop()
 
-        clicker.on_hotkey()
+
+    def stop_clicker(self):
+        clicker.stop_loop()
 
     def update_button(self):
-        if clicker.clicking:
-            self.toggle_button.configure(text="Stop")
-        else:
-            self.toggle_button.configure(text=f"Start ({Config.hotkey})")
-
+        self.start_button.configure(
+                text=f"Start ({Config.hotkey})"
+        )
         self.after(100, self.update_button)        
 
     def create_time_field(parent, label):
